@@ -1,0 +1,202 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject HttpClient Http
+@using domain.Models.Enums
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+<div class="container">
+    <div class="row" style="margin-top: 10px;"> 
+        <div class="col">
+            <h3>Reactor Cycles</h3>
+            @if (@messages.ContainsKey(IntegrationSystem.ReactorCycle))
+            {
+                <div>@messages[IntegrationSystem.ReactorCycle]</div>
+            }
+            else
+            {
+                <div>0</div>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-primary" @onclick="StartSimulation"> Start </button>
+        </div>
+        <div class="col">
+            <button class="btn btn-danger" @onclick="StopSimulation"> Stop </button>
+        </div>
+    </div>
+    <div class="row" style="margin-top: 10px;"> 
+        <div class="col">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">System</th>
+                        <th scope="col">Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Oil</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Oil))
+                        {
+                            <td> @messages[IntegrationSystem.Oil] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+
+                    </tr>
+                    <tr>
+                        <th scope="row">Ethanol</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Ethanol))
+                        {
+                            <td> @messages[IntegrationSystem.Ethanol] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">NaOH</th>
+                        @if (messages.ContainsKey(IntegrationSystem.NaOH))
+                        {
+                            <td> @messages[IntegrationSystem.NaOH] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Reactor</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Reactor))
+                        {
+                            <td> @messages[IntegrationSystem.Reactor] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Decanter</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Decanter))
+                        {
+                            <td> @messages[IntegrationSystem.Decanter] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Washer #1</th>
+                        @if (messages.ContainsKey(IntegrationSystem.FirstWashTank))
+                        {
+                            <td> @messages[IntegrationSystem.FirstWashTank] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Washer #2</th>
+                        @if (messages.ContainsKey(IntegrationSystem.SecondWashTank))
+                        {
+                            <td> @messages[IntegrationSystem.SecondWashTank] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Washer #3</th>
+                        @if (messages.ContainsKey(IntegrationSystem.ThirdWashTank))
+                        {
+                            <td> @messages[IntegrationSystem.ThirdWashTank] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Glycerin</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Glycerin))
+                        {
+                            <td> @messages[IntegrationSystem.Glycerin] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Dryer</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Dryer))
+                        {
+                            <td> @messages[IntegrationSystem.Dryer] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                    <tr>
+                        <th scope="row">Biodisel</th>
+                        @if (messages.ContainsKey(IntegrationSystem.Biodisel))
+                        {
+                            <td> @messages[IntegrationSystem.Biodisel] </td>
+                        }
+                        else
+                        {
+                            <td> 0</td>
+                        }
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HubConnection hubConnection;
+    private Dictionary<IntegrationSystem, decimal> messages = new Dictionary<IntegrationSystem, decimal>();
+    private string userInput;
+    private string messageInput;
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+        .WithUrl(NavigationManager.ToAbsoluteUri("/simulatorHub"))
+        .Build();
+
+        hubConnection.On<IntegrationSystem, decimal>("ReceiveMessage", (integrationSystem, volume) =>
+        {
+            if (!messages.ContainsKey(integrationSystem))
+                messages.Add(integrationSystem, 0);
+
+            messages[integrationSystem] = volume;
+
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    public async Task StartSimulation() => await Http.PostAsync("simulator/start", null);
+
+    public async Task StopSimulation() => await Http.PostAsync("simulator/stop", null);
+
+    public bool IsConnected =>
+    hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}

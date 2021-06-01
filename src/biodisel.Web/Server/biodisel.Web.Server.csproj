@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\biodisel.Web.Client.csproj" />
+    <ProjectReference Include="..\..\biodisel.domain\biodisel.domain.csproj" />
+    <ProjectReference Include="..\..\biodisel.core\biodisel.core.csproj" />
+    <ProjectReference Include="..\Shared\biodisel.Web.Shared.csproj" />
+  </ItemGroup>
+
+
+</Project>

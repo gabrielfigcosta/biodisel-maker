@@ -1,0 +1,21 @@
+version: "3.6"
+services: 
+    rabbit:
+        container_name: "queues"
+        image: rabbitmq:3-management
+        hostname: "rabbit"
+        ports: 
+            - "8080:15672"
+            - "5672:5672"
+            - "25676:25676"
+    core:
+        build: 
+            context: ./
+            dockerfile: ./Dockerfile
+        container_name: "core"
+        restart: always
+        ports: 
+            - "80:80"
+        depends_on: 
+            - "rabbit"
+        
